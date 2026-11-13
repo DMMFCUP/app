@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué símbolos conoces? · Actividad interactiva</title>
+<style>
+:root{--green:#176b55;--dark:#153d34;--bg:#f3f6f8;--ink:#172033;--muted:#667085;--line:#e3e9ee;--blue:#eaf2ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(120deg,var(--dark),var(--green));color:#fff;padding:25px 18px;text-align:center}
+header h1{margin:0;font-size:clamp(1.5rem,4vw,2.2rem)}header p{margin:8px auto 0;max-width:650px;color:#e0f1eb;line-height:1.45}
+main{max-width:900px;margin:22px auto;padding:0 15px 30px}
+.instructions,.results{background:white;border:1px solid var(--line);border-radius:17px;padding:17px 19px;margin-bottom:16px;box-shadow:0 6px 20px #14213b08}
+.instructions strong{color:var(--green)}.instructions p{margin:5px 0 0;color:var(--muted);line-height:1.5}
+.progressrow{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:18px 2px 10px;font-weight:700}
+.track{height:9px;background:#e8edf0;border-radius:99px;overflow:hidden}.fill{height:100%;width:0;background:var(--green);transition:width .2s}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tile{background:#fff;border:2px solid var(--line);border-radius:16px;min-height:135px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:.15s;position:relative;color:var(--ink)}
+.tile:hover{border-color:#9dbdb1;transform:translateY(-2px)}
+.tile .symbol{font-size:clamp(2.2rem,6vw,3.1rem);line-height:1.1}
+.tile .hint{font-size:.78rem;color:var(--muted)}
+.tile.selected{border-color:var(--green);background:#edf8f3;box-shadow:0 0 0 2px #176b5520}
+.tile.selected:after{content:"✓";position:absolute;right:9px;top:7px;background:var(--green);color:white;border-radius:50%;width:23px;height:23px;display:grid;place-items:center;font-weight:800}
+.tile.revealed{cursor:default}
+.tile .answer{font-size:.88rem;font-weight:800;color:var(--green);text-align:center}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+button.action{border:0;border-radius:11px;padding:12px 17px;font-weight:750;font-size:.95rem;cursor:pointer}
+.primary{background:var(--green);color:white}.secondary{background:#e8edf2;color:#344054}
+.results{display:none;line-height:1.5}.results h2{margin:0 0 7px}.results p{margin:5px 0;color:var(--muted)}
+.tip{font-size:.88rem;color:var(--muted);text-align:center;margin-top:15px}
+@media(max-width:620px){.grid{grid-template-columns:repeat(2,1fr)}.tile{min-height:125px}}
+@media(min-width:621px) and (max-width:800px){.grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header>
+ <h1>🔎 ¿Qué símbolos conoces?</h1>
+ <p>Actividad interactiva · Aplicaciones de restaurantes</p>
+</header>
+<main>
+ <section class="instructions">
+  <strong>Instrucciones para los estudiantes</strong>
+  <p>Observa cada símbolo. Haz clic solamente en los que ya conozcas o que hayas visto antes en un teléfono o una aplicación. Puedes cambiar tu selección cuando quieras. Al terminar, pulsa <b>“Ver qué significan”</b>.</p>
+ </section>
+ <div class="progressrow"><span>Mis símbolos conocidos</span><span id="counter">0 de 8 seleccionados</span></div>
+ <div class="track"><div class="fill" id="fill"></div></div>
+ <div class="grid" id="grid">
+  <button class="tile" data-id="home" aria-pressed="false"><span class="symbol">🏠</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="plus" aria-pressed="false"><span class="symbol">➕</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="printer" aria-pressed="false"><span class="symbol">🖨️</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="pay" aria-pressed="false"><span class="symbol">💳</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="search" aria-pressed="false"><span class="symbol">🔍</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="settings" aria-pressed="false"><span class="symbol">⚙️</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="list" aria-pressed="false"><span class="symbol">📋</span><span class="hint">Toca si lo conoces</span></button>
+  <button class="tile" data-id="refresh" aria-pressed="false"><span class="symbol">🔄</span><span class="hint">Toca si lo conoces</span></button>
+ </div>
+ <div class="actions">
+  <button class="action primary" onclick="reveal()">Ver qué significan</button>
+  <button class="action secondary" onclick="resetActivity()">Volver a empezar</button>
+ </div>
+ <section class="results" id="results" aria-live="polite">
+  <h2>📚 ¡Vamos a aprender!</h2>
+  <p id="score"></p>
+  <p>Estos son los nombres y funciones de los símbolos. Comenten en grupo cuáles ya conocían y cuáles son nuevos.</p>
+ </section>
+ <p class="tip">No importa si no conoces todos: ¡esta actividad es para aprender!</p>
+</main>
+<script>
+const labels={
+ home:['Inicio','Regresa a la pantalla principal de la aplicación.'],
+ plus:['Agregar','Añade un alimento, bebida o elemento al pedido.'],
+ printer:['Imprimir','Envía una comanda o factura a una impresora.'],
+ pay:['Cobrar','Permite registrar el pago del cliente.'],
+ search:['Buscar','Sirve para encontrar alimentos, bebidas o pedidos.'],
+ settings:['Configuración','Permite cambiar los ajustes de la aplicación.'],
+ list:['Lista de pedidos','Muestra los productos que se han agregado al pedido.'],
+ refresh:['Actualizar','Vuelve a cargar o actualizar la información de la pantalla.']
+};
+const selected=new Set();
+const tiles=[...document.querySelectorAll('.tile')];
+tiles.forEach(tile=>tile.addEventListener('click',()=>{
+ if(tile.classList.contains('revealed'))return;
+ const id=tile.dataset.id;
+ if(selected.has(id)){selected.delete(id);tile.classList.remove('selected');tile.setAttribute('aria-pressed','false')}
+ else{selected.add(id);tile.classList.add('selected');tile.setAttribute('aria-pressed','true')}
+ update();
+}));
+function update(){
+ document.getElementById('counter').textContent=selected.size+' de 8 seleccionados';
+ document.getElementById('fill').style.width=(selected.size/8*100)+'%';
+}
+function reveal(){
+ const results=document.getElementById('results');
+ document.getElementById('score').textContent='Seleccionaste '+selected.size+' de 8 símbolos como conocidos.';
+ tiles.forEach(tile=>{
+  const id=tile.dataset.id, data=labels[id];
+  tile.classList.add('revealed');
+  tile.innerHTML='<span class="symbol">'+tile.querySelector('.symbol').textContent+'</span><span class="answer">'+data[0]+'</span><span class="hint">'+data[1]+'</span>';
+ });
+ results.style.display='block';
+ results.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function resetActivity(){
+ selected.clear();
+ tiles.forEach(tile=>{
+  const symbols={home:'🏠',plus:'➕',printer:'🖨️',pay:'💳',search:'🔍',settings:'⚙️',list:'📋',refresh:'🔄'};
+  tile.className='tile';tile.setAttribute('aria-pressed','false');
+  tile.innerHTML='<span class="symbol">'+symbols[tile.dataset.id]+'</span><span class="hint">Toca si lo conoces</span>';
+ });
+ document.getElementById('results').style.display='none';update();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
